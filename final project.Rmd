@@ -58,9 +58,10 @@ The data sources are linked in the abstract, coming from **Inter-university Cons
 
 ## Data Cleaning
 
-```{r import}
+```{r import,message=FALSE}
 #load needed libraries and import raw data file
 library(readr)
+library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
@@ -78,7 +79,7 @@ new_data=mydata[new_data_indeces]
 #everything I have kept has a value and proper name
 ```
 
-```{r creating social status variable, echo=FALSE}
+```{r creating social status variable}
 #verify ChildrenNo and income are numeric
 #monthly income/(number children+self) and rename column adjusted income.
 class(new_data$ChildrenNo)
@@ -87,7 +88,7 @@ names(new_data)[1]="adjustedIncome"
 new_data$adjustedIncome=new_data$adjustedIncome/(new_data$ChildrenNo+1)
 
 ```
-```{r socioeconomic status, echo=FALSE}
+```{r socioeconomic status, results='hide'}
 # create a filter comparing adjusted income with the poverty line (283949.64 kyats/person). 
 #If more than 10% greater Assign 3 for above, 1  for 10% below poverty line and 2 for those 
 #around the poverty line (arbitrary plus or minus 10%). The new factor variable will be 
@@ -104,22 +105,79 @@ new_data$socialstatus[belowPovertyrows]=1
 as.factor(new_data$socialstatus)
 ```
 
-```{r ideal heart health factor variables}
-#manually looking through the information file to find yes/no key values assigned 
-#to smoking status, healthy eating, and physical activity
-#create new dataframe with factor variables only
+```{r ideal heart health binary variables, results='hide'}
+#create new dataframe with lifestyle binary variables only 
+# it is a misnomer calling this new dataframe factors_df but keeping it
+#switch values of VegFruit and Physical Exercise so that yes=1 and no=0 as with 
+#other lifestyle binary variables
 
+factors_df=new_data[,c(16,17,18,19,20)]
+yesVegFruit=which(new_data$VegFruit==0)
+noVegFruit=which(new_data$VegFruit==1)
+factors_df$VegFruit[noVegFruit]=0
+factors_df$VegFruit[yesVegFruit]=1
+
+yesExercise=which(new_data$PhysicalExercise==0)
+noExercise=which(new_data$PhysicalExercise==1)
+factors_df$PhysicalExercise[noExercise]=0
+factors_df$PhysicalExercise[yesExercise]=1
 
 ```
-```{r ideal heart health scores temp variables}
+
+```{r ideal heart health scores temp variables,results='hide'}
 #healthyChol, healthyBP, getsExercise, healthyEater, nonSmoker, 
 #healthyFBS (fasting blood sugar), healthyBMI will have values of 1 if 
 #they have met AHA health standards in that category. idealHeartscore will
 #be the sum of these with a value of 0-7.
 
+#healthy eating score calculation
+healthyEater_filter=which(factors_df$VegFruit==1 & factors_df$Saltymeal==0 & factors_df$Oilymeal==0)
+new_data$healthyEater=0
+new_data$healthyEater[healthyEater_filter]=1
+
+#healthy cholesterol calculation
+healthyChol_filter=which(new_data$TotalCholesterol<200 & new_data$Age>20)
+youngChol_filter=which(new_data$TotalCholesterol<170 & new_data$Age<=19)
+new_data$healthyChol=0
+new_data$healthyChol[healthyChol_filter]=1
+new_data$healthyChol[youngChol_filter]=1
+
+#healthy BP calculation
+healthyBPfilter=which(new_data$SystolicBP<120 & new_data$DiastolicBP<80)
+new_data$healthyBP=0
+new_data$healthyBP[healthyBPfilter]=1
+
+#healthy fasting blood sugar calculation
+healthyFBS_filter=which(new_data$FBS<100)
+new_data$healthyFBS=0
+new_data$healthyFBS[healthyFBS_filter]=1
+
+#BMI is metric used according to AHA citation (to address midterm comment)
+#BMI calculation
+healthyBMI_filter=which(new_data$BMI<25)
+new_data$healthyBMI=0
+new_data$healthyBMI[healthyBMI_filter]=1
+
+#Never smoked status
+nonSmoker_filter=which(factors_df$Pastsmoking==0)
+new_data$nonSmoker=0
+new_data$nonSmoker[nonSmoker_filter]=1
+
+#Physical Exercise
+getsExercise_filter=which(factors_df$PhysicalExercise==1)
+new_data$getsExercise=0
+new_data$getsExercise[getsExercise_filter]=1
+
+
+#using dplyr to create new variable idealHealthscore
+clean_data=new_data|>
+  mutate(idealHealthscore=getsExercise+nonSmoker+
+           healthyEater+healthyChol+healthyBMI+healthyBP+healthyBMI
+)
 ```
 
 ## Midterm Goals Status Summary
+I met some of the goals of this project, thank God I have to say. I put a lot on the midterm plan, and I learned later that there are easier ways to accomplish the same things. I had to make an assumption about age looking at the data. Though it was accounted for in total cholesterol filters, it was too complicated to ascertain "95th percentile" values for those youths age 18 and 19 for which BMI and blood pressure were impacted by age. They are not children, so I assumed they were close enough to group with the 20 and older adults to use the same cutoff values. The ideal heart score was calculated, as well as socioeconomic status factor variable created. I did not use a filter of sorts or loop to reassign 1's and 0's for binary variables. There were only 2 that I used that didn't agree with my system of yes=1 and no=0 when I manually looked through the information file. So I hardcoded those changes. I think it was excessive to plan to do several different types of visualizations in this time frame, so I am focusing on showing the regression for sleep versus ideal health rating, and a scatterplot for adjusted income versus ideal health score with trend lines for different socioeconomic status.
 
 
 \newpage
@@ -127,7 +185,7 @@ as.factor(new_data$socialstatus)
 ## Summary Statistics for numeric variables of interest
 
 ```{r numeric variables}
-summary_stats=summary(new_data[c(1:15)])
+summary_stats=summary(clean_data[c(1:15,29)])
 summary_stats
 ```
 \newpage 
@@ -136,17 +194,15 @@ summary_stats
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r sleep regression
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 \newpage
 
 #Beyond Our R
-
+I did not use any packages beyond what we learned in class. I was inclined to use only base R, as I felt intimidated by using dplyr. However, I found that dplyr is a lot more efficient at creating new variables and manipulating their values with other columns in a data frame using the mutate function. What I learned is sufficient for my purposes, because I wanted find a relationship between socioeconomic status and ideal heart health, if there was one, to practice cleaning and analyzing health data as a biomedical engineering student. With the tools we learned this semester, I was able to get my hands dirty and gain skills I will put on my resume (cleaning, analysis, visualization of data). Regressions are used a lot in my field, and I didn't understand what they communicated until this course. Visualizing data used to take me hours to make a good plot, usually because of the details I tried to manually adjust in Excel (if I could find the setting). My design course professors really emphasized good graphics in our presentations of our projects, and I now feel I am proficient at basic R for my capstone project visualizations and data analysis in my last semester at Tech!
 
 \newpage
 
 #References
-copy and paste revised bibliography
