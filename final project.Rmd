@@ -61,6 +61,7 @@ The data sources are linked in the abstract, coming from **Inter-university Cons
 ```{r import,message=FALSE}
 #load needed libraries and import raw data file
 library(readr)
+library(rmarkdown)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -127,7 +128,7 @@ factors_df$PhysicalExercise[yesExercise]=1
 ```{r ideal heart health scores temp variables,results='hide'}
 #healthyChol, healthyBP, getsExercise, healthyEater, nonSmoker, 
 #healthyFBS (fasting blood sugar), healthyBMI will have values of 1 if 
-#they have met AHA health standards in that category. idealHeartscore will
+#they have met AHA health standards in that category. idealHealthscore will
 #be the sum of these with a value of 0-7.
 
 #healthy eating score calculation
@@ -177,7 +178,7 @@ clean_data=new_data|>
 ```
 
 ## Midterm Goals Status Summary
-I met some of the goals of this project, thank God I have to say. I put a lot on the midterm plan, and I learned later that there are easier ways to accomplish the same things. I had to make an assumption about age looking at the data. Though it was accounted for in total cholesterol filters, it was too complicated to ascertain "95th percentile" values for those youths age 18 and 19 for which BMI and blood pressure were impacted by age. They are not children, so I assumed they were close enough to group with the 20 and older adults to use the same cutoff values. The ideal heart score was calculated, as well as socioeconomic status factor variable created. I did not use a filter of sorts or loop to reassign 1's and 0's for binary variables. There were only 2 that I used that didn't agree with my system of yes=1 and no=0 when I manually looked through the information file. So I hardcoded those changes. I think it was excessive to plan to do several different types of visualizations in this time frame, so I am focusing on showing the regression for sleep versus ideal health rating, and a scatterplot for adjusted income versus ideal health score with trend lines for different socioeconomic status.
+I met some of the goals of this project, thank God I have to say. I put a lot on the midterm plan, and I learned later that there are easier ways to accomplish the same things. I had to make an assumption about age looking at the data. Though it was accounted for in total cholesterol filters, it was too complicated to ascertain "95th percentile" values for those youths age 18 and 19 for which BMI and blood pressure were impacted by age. They are not children, so I assumed they were close enough to group with the 20 and older adults to use the same cutoff values. The ideal heart score was calculated, as well as socioeconomic status factor variable created. I did not use a filter of sorts or loop to reassign 1's and 0's for binary variables. There were only 2 that I used that didn't agree with my system of yes=1 and no=0 when I manually looked through the information file. So I hardcoded those changes. I think it was excessive to plan to do several different types of visualizations in this time frame, so I am focusing on showing the regression for sleep versus ideal health rating and adjusted income versus ideal health rating. I plan also to do a scatterplot showing adjusted income versus ideal health score with trend lines for different socioeconomic status.
 
 
 \newpage
@@ -190,19 +191,54 @@ summary_stats
 ```
 \newpage 
 
-## Analysis
+# Regressions & Visualizations
+```{r regression income}
+regression_main=lm(idealHealthscore~adjustedIncome, data=clean_data)
+summary(regression_main)
+```
+The regression between adjusted income and idealHealthscore shows a miniscule negative relationship between the two variables, but with a p value of >0.05, it is not a significant result.  
 
-You can also embed plots, for example:
+```{r regression sleep }
+regression1=lm(idealHealthscore~Sleepduration, data=clean_data)
+summary(regression1)
+```
+The regression between sleep duration and idealHealthscore shows a slight positive relationship between the two variables, but with a p value of >0.05, it is not a significant result.  
 
-```{r sleep regression
+```{r Visualizing effect of sleep on heart score regression, message=FALSE}
+scatter=ggplot(clean_data, aes(x=adjustedIncome, y=idealHealthscore))+geom_point()+
+  geom_smooth(method="lm", se=TRUE)+labs(title="Heart Health vs Adjusted Income")
+
+print(scatter)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 \newpage
 
-#Beyond Our R
+# Beyond Our R
 I did not use any packages beyond what we learned in class. I was inclined to use only base R, as I felt intimidated by using dplyr. However, I found that dplyr is a lot more efficient at creating new variables and manipulating their values with other columns in a data frame using the mutate function. What I learned is sufficient for my purposes, because I wanted find a relationship between socioeconomic status and ideal heart health, if there was one, to practice cleaning and analyzing health data as a biomedical engineering student. With the tools we learned this semester, I was able to get my hands dirty and gain skills I will put on my resume (cleaning, analysis, visualization of data). Regressions are used a lot in my field, and I didn't understand what they communicated until this course. Visualizing data used to take me hours to make a good plot, usually because of the details I tried to manually adjust in Excel (if I could find the setting). My design course professors really emphasized good graphics in our presentations of our projects, and I now feel I am proficient at basic R for my capstone project visualizations and data analysis in my last semester at Tech!
 
 \newpage
 
-#References
+# Other References
+
+Cleveland Clinic. (2025, July 22). Metabolic syndrome. Cleveland Clinic. https://my.clevelandclinic.org/health/diseases/10783-metabolic-syndrome
+
+Ignite Healthwise, LLC. (2024). Blood glucose: About this test. MyHealth.Alberta.ca Government of Alberta Personal Health Portal. https://myhealth.alberta.ca/Health/aftercareinformation/pages/conditions.aspx?hwid=ad1603
+
+Lloyd-Jones, D. M., Hong, Y., Labarthe, D., Mozaffarian, D., Appel, L. J., Van Horn, L., Greenlund, K., Daniels, S., Nichol, G., Tomaselli, G. F., Arnett, D. K., Fonarow, G. C., Ho, P. M., Lauer, M. S., Masoudi, F. A., Robertson, R. M., Roger, V., Schwamm, L. H., Sorlie, P., … Rosamond, W. D. (2010). Defining and setting national goals for Cardiovascular Health Promotion and Disease Reduction. Circulation, 121(4), 586–613. https://doi.org/10.1161/circulationaha.109.192703
+
+Mayo Clinic Staff. (2024, February 28). Blood pressure chart: What your reading means. Mayo Clinic. https://www.mayoclinic.org/diseases-conditions/high-blood-pressure/in-depth/blood-pressure/art-20050982
+
+OCHA. (2024, December 13). Myanmar Humanitarian Needs and Response Plan 2025. Humanitarian Action.
+https://humanitarianaction.info/document/myanmar-humanitarian-needs-and-response-plan-2025/article/28-
+multi-purpose-cash-section-and-cash-voucher-assistance-overview#:~:text=Most%20of%20the%20households%20assessed,
+expected%20to%20grow%20in%202025. 
+
+professional, C. C. medical. (2025, April 23). What should my cholesterol levels be?. Cleveland Clinic. https://my.clevelandclinic.org/health/articles/11920-cholesterol-numbers-what-do-they-mean
+
+U.S. Department of Health and Human Services. (n.d.). Calculate your BMI. National Heart Lung and Blood Institute. https://www.nhlbi.nih.gov/calculate-your-bmi
+
+U.S. National Library of Medicine. (2025, May 20). Hemoglobin A1C (hba1c) test: Medlineplus medical test. MedlinePlus. https://medlineplus.gov/lab-tests/hemoglobin-a1c-hba1c-test/ 
+
+World Health Organization. (n.d.). Myanmar. World Health Organization. https://data.who.int/countries/104 
+
+
