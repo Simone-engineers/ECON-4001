@@ -2,24 +2,123 @@
 title: "Final Project"
 author: "S. McGowan"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  pdf_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r global-options, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+#The above options names the code chunk as global-options, include=FALSE will hide this code chunk in final document. Knitr package will create report document
 ```
 
-## R Markdown
+# Ideal Cardiovascular Health: An Analysis of Survey Data from Myanmar, 2021
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## R Coding Final Project
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Simone McGowan
 
-```{r cars}
-summary(cars)
+### Georgia Tech, Summer 2025
+
+### GitHub Profile: "Simone-engineers" ; repository: "ECON-4001"
+
+These data were obtained from the distributor, the **Inter-university Consortium for Political and Social Research**. It was collected in a survey format, to evaluate Metabolic Syndrome. The [information file](https://doi.org/10.3886/E146521V1-185521) in the hyperlink describes factor variable value assignments. The [raw data](https://doi.org/10.3886/E146521V1-185522) will be used to assess our outcome of interest, "ideal cardiovascular health" status based on metrics from the [American Heart Association](https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.109.192703).
+
+\newpage
+
+# Table of Contents
+
+1.  Literature Review & Motivation
+2.  Data Description <!--subtopics have been indented below-->
+
+-   Cleaning Data
+    -   Midterm goals that were completed
+    -   Midterm goals that were not completed +Next Steps
+-   Analysis Goals
+    -   Tables
+    -   Visualizations
+
+3.  Beyond Our R
+4. Reference List
+
+\newpage
+
+# Literature Review
+
+## Background
+
+Metabolic syndrome is a reversible state comprised of having 3 of the 5 health conditions (elevated waist circumference, high triglycerides, high blood pressure, low HDL cholesterol, high fasting glucose) that puts a person at risk of cardiovascular disease (CD), stroke, and type 2 diabetes (Cleveland Clinic, 2023). Though the data was intended to evaluate risk of these three health outcomes, the purpose of the present analysis is to hone in on current cardiovascular health. In Myanmar, Stroke and Ischaemic Heart Disease were in the top 4 leading causes of death amongst men and women in 2021 (World Health Organization, n.d). It is therefore important to identify patterns in the population as a whole, as well as identify vulnerable populations, so that action can be taken on a community and policy/public health level (Lloyd-Jones et al., 2010). The presence of Ideal Heart health is linked with lower rates of mortality due to cardiovascular disease, as well as lower mortality rates due to diseases such as cancer. It is also helpful in reducing risk of cardiac events and stroke in pediatric populations later in life. An Ideal Heart health score will be created using ranges provided by the American Heart Association; relevant metrics include: BMI, total cholesterol, smoking status, physical activity, healthy diet, fasting plasma glucose, and blood pressure, with age determining cutoff values. (Lloyd-Jones et al., 2010)
+
+## Socioeconomic status in Myanmar
+According to the website Humanitarian Action the absolute poverty line is $2.15 per person per day in Myanmar, which is (2.15 USD per day x 4402.32 kyat/USD x 30 days) around 283949.64 kyats per person per month using today's exchange rate (OCHA, 2024). The socioeconomic status will be assessed by dividing monthly income of a person by number of children plus them self, to determine if they are at, above or below the poverty line. There is not enough information to assess marital contribution to household income.
+
+\newpage
+
+# Data Description
+The data sources are linked in the abstract, coming from **Inter-university Consortium for Political and Social Research** hosted by the University of Michigan. The research was done by Su Su Maw from the University of Nursing in Yangon, Myanmar.
+
+## Data Cleaning
+
+```{r import}
+#Read in data file
+library(readr)
+setwd('C:/Users/smdot/OneDrive/Desktop/R-Summer25/Data/raw')
+mydata=read.csv("MetS data to upload.csv", header=TRUE, stringsAsFactors =FALSE)
 ```
 
-## Including Plots
+```{r removing variables}
+#kept only variables in new data frame called new_data  
+#rather than removing a lot of variables that were unusable upon examination or context
+new_data_indeces=c(7,17,18,21,22,23,24,25,26,27,28,29,31,32,33,45,46,47,50,58)
+new_data=mydata[new_data_indeces]
+#confirmed that 20 variables that I want to keep remain.
+#renaming variables and removing NULL values no longer applicable because 
+#everything I have kept has a value and proper name
+```
+
+```{r creating social status variable }
+#verify ChildrenNo and income are numeric
+#monthly income/(number children+self) and rename column adjusted income.
+class(new_data$ChildrenNo)
+class(new_data$Income)
+names(new_data)[1]="adjustedIncome"
+new_data$adjustedIncome=new_data$adjustedIncome/(new_data$ChildrenNo+1)
+
+```
+```{r}
+# create a filter comparing adjusted income with the poverty line (283949.64 kyats/person). 
+#If more than 10% greater Assign 3 for above, 1  for 10% below poverty line and 2 for those 
+#around the poverty line (arbitrary plus or minus 10%). The new factor variable will be 
+#called social status.
+```
+
+```{r ideal heart health factor variables}
+#manually looking through the information file to find yes/no key values assigned 
+#to smoking status, healthy eating, and physical activity
+
+
+```
+```{r ideal heart health scores temp variables}
+#healthyChol, healthyBP, getsExercise, healthyEater, nonSmoker, 
+#healthyFBS (fasting blood sugar), healthyBMI will have values of 1 if 
+#they have met AHA health standards in that category. idealHeartscore will
+#be the sum of these with a value of 0-7.
+
+```
+
+## Midterm Goals Status Summary
+
+
+\newpage
+
+## Summary Statistics for numeric variables of interest
+
+```{r numeric variables}
+summary_stats=summary(new_data[c(1:15)])
+summary_stats
+```
+\newpage 
+
+## Analysis
 
 You can also embed plots, for example:
 
@@ -28,3 +127,12 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+\newpage
+
+#Beyond Our R
+
+
+\newpage
+
+#References
+copy and paste revised bibliography
