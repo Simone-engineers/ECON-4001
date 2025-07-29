@@ -59,8 +59,11 @@ The data sources are linked in the abstract, coming from **Inter-university Cons
 ## Data Cleaning
 
 ```{r import}
-#Read in data file
+#load needed libraries and import raw data file
 library(readr)
+library(dplyr)
+library(ggplot2)
+
 setwd('C:/Users/smdot/OneDrive/Desktop/R-Summer25/Data/raw')
 mydata=read.csv("MetS data to upload.csv", header=TRUE, stringsAsFactors =FALSE)
 ```
@@ -75,7 +78,7 @@ new_data=mydata[new_data_indeces]
 #everything I have kept has a value and proper name
 ```
 
-```{r creating social status variable }
+```{r creating social status variable, echo=FALSE}
 #verify ChildrenNo and income are numeric
 #monthly income/(number children+self) and rename column adjusted income.
 class(new_data$ChildrenNo)
@@ -84,16 +87,27 @@ names(new_data)[1]="adjustedIncome"
 new_data$adjustedIncome=new_data$adjustedIncome/(new_data$ChildrenNo+1)
 
 ```
-```{r}
+```{r socioeconomic status, echo=FALSE}
 # create a filter comparing adjusted income with the poverty line (283949.64 kyats/person). 
 #If more than 10% greater Assign 3 for above, 1  for 10% below poverty line and 2 for those 
 #around the poverty line (arbitrary plus or minus 10%). The new factor variable will be 
 #called social status.
+
+upperClassrows=which(new_data$adjustedIncome>1.1*283949.64)
+belowPovertyrows=which(new_data$adjustedIncome<0.9*283949.64)
+aroundPovertyrows=which(0.9*283949.64<=new_data$adjustedIncome &
+new_data$adjustedIncome<=1.1*283949.64)
+new_data$socialstatus=0
+new_data$socialstatus[upperClassrows]=3
+new_data$socialstatus[aroundPovertyrows]=2
+new_data$socialstatus[belowPovertyrows]=1
+as.factor(new_data$socialstatus)
 ```
 
 ```{r ideal heart health factor variables}
 #manually looking through the information file to find yes/no key values assigned 
 #to smoking status, healthy eating, and physical activity
+#create new dataframe with factor variables only
 
 
 ```
